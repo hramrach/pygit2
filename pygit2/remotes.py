@@ -222,7 +222,6 @@ class Remote:
         specs = ffi.new('git_strarray *')
         err = C.git_remote_get_fetch_refspecs(specs, self._remote)
         check_error(err)
-
         return strarray_to_strings(specs)
 
     @property
@@ -232,7 +231,6 @@ class Remote:
         specs = ffi.new('git_strarray *')
         err = C.git_remote_get_push_refspecs(specs, self._remote)
         check_error(err)
-
         return strarray_to_strings(specs)
 
     def push(self, specs, callbacks=None, proxy=None):
@@ -294,14 +292,12 @@ class RemoteCollection:
 
     def __len__(self):
         names = ffi.new('git_strarray *')
-
         try:
             err = C.git_remote_list(names, self._repo._repo)
             check_error(err)
-
             return names.count
         finally:
-            C.git_strarray_free(names)
+            C.git_strarray_dispose(names)
 
     def __iter__(self):
         cremote = ffi.new('git_remote **')
@@ -323,15 +319,13 @@ class RemoteCollection:
 
     def _ffi_names(self):
         names = ffi.new('git_strarray *')
-
         try:
             err = C.git_remote_list(names, self._repo._repo)
             check_error(err)
-
             for i in range(names.count):
                 yield names.strings[i]
         finally:
-            C.git_strarray_free(names)
+            C.git_strarray_dispose(names)
 
     def names(self):
         """An iterator over the names of the available remotes."""
@@ -386,11 +380,7 @@ class RemoteCollection:
         problems = ffi.new('git_strarray *')
         err = C.git_remote_rename(problems, self._repo._repo, to_bytes(name), to_bytes(new_name))
         check_error(err)
-
-        ret = strarray_to_strings(problems)
-        C.git_strarray_free(problems)
-
-        return ret
+        return strarray_to_strings(problems)
 
     def delete(self, name):
         """Remove a remote from the configuration
